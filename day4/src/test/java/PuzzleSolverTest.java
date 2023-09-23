@@ -23,7 +23,8 @@ class PuzzleSolverTest {
 
     @Test
     public void task2Test() throws Exception {
-        assertEquals(2, PuzzleSolver.task2());
+        assertEquals("very encrypted name", PuzzleSolver.decryptName(new PuzzleSolver.Room("qzmt-zixmtkozy-ivhz", 343, "")));
+        assertEquals(991, PuzzleSolver.task2(getPuzzleInput()));
     }
 
     private List<String> getPuzzleInput() throws Exception {

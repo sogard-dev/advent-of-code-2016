@@ -1,19 +1,33 @@
-import java.util.*;
+import java.util.List;
+import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class PuzzleSolver {
 
     public static int task1(List<String> puzzleInput) {
         return puzzleInput.stream()
-                .map(PuzzleSolver::toRoom)
+                .map(PuzzleSolver::parse)
                 .filter(PuzzleSolver::isRealRoom)
-                .mapToInt(PuzzleSolver::toSectorId)
+                .mapToInt(r -> r.sectorId)
                 .sum();
     }
 
-    private static Room toRoom(String s) {
-        Pattern compile = Pattern.compile("([-a-z]*-)+(\\d+)\\[([a-z]+)\\]");
+    public static int task2(List<String> puzzleInput) {
+        return puzzleInput.stream()
+                .map(PuzzleSolver::parse)
+                .filter(PuzzleSolver::isRealRoom)
+                .filter(room -> {
+                    String realName = decryptName(room);
+                    return realName.startsWith("northpole object storage ");
+                })
+                .mapToInt(r -> r.sectorId)
+                .sum();
+    }
+
+    private static Room parse(String s) {
+        Pattern compile = Pattern.compile("([-a-z]*-)+(\\d+)\\[([a-z]+)]");
         Matcher matcher = compile.matcher(s);
         if (matcher.find()) {
             String room = matcher.group(1);
@@ -25,13 +39,8 @@ public class PuzzleSolver {
         throw new RuntimeException("Unexpected: " + s);
     }
 
-    private static int toSectorId(Room room) {
-        return room.sectorId;
-    }
-
     private static boolean isRealRoom(Room s) {
         TreeMap<Character, Integer> characterIntegerHashMap = new TreeMap<>();
-
         for (char c : s.encryptedName.toCharArray()) {
             if (c == '-') {
                 continue;
@@ -40,18 +49,16 @@ public class PuzzleSolver {
             characterIntegerHashMap.computeIfPresent(c, (k, v) -> v + 1);
         }
 
-        ArrayList<Pair> pairs = new ArrayList<>();
-        for (Map.Entry<Character, Integer> characterIntegerEntry : characterIntegerHashMap.entrySet()) {
-            pairs.add(new Pair(characterIntegerEntry.getKey(), characterIntegerEntry.getValue()));
-        }
-
-        pairs.sort((o1, o2) -> {
-            int compare = Integer.compare(o2.o, o1.o);
-            if (compare == 0) {
-                return Character.compare(o1.c, o2.c);
-            }
-            return compare;
-        });
+        List<Pair> pairs = characterIntegerHashMap.entrySet().stream()
+                .map(e -> new Pair(e.getKey(), e.getValue()))
+                .sorted((o1, o2) -> {
+                    int compare = Integer.compare(o2.o, o1.o);
+                    if (compare == 0) {
+                        return Character.compare(o1.c, o2.c);
+                    }
+                    return compare;
+                })
+                .collect(Collectors.toList());
 
         for (int i = 0; i < s.checksum.length(); i++) {
             if (pairs.get(i).c != s.checksum.charAt(i)) {
@@ -62,8 +69,20 @@ public class PuzzleSolver {
         return true;
     }
 
-    public static int task2() {
-        return 12;
+    public static String decryptName(Room r) {
+        int start = 'a';
+        int gap = 'z' - 'a' + 1;
+        int shift = r.sectorId % gap;
+
+        return r.encryptedName.chars()
+                .map(i -> {
+                    if (i == '-') {
+                        return ' ';
+                    }
+                    return ((i - start + shift) % gap) + start;
+                })
+                .mapToObj(c -> String.valueOf((char) c))
+                .collect(Collectors.joining());
     }
 
     private static class Pair {
@@ -71,13 +90,12 @@ public class PuzzleSolver {
         int o;
 
         public Pair(char c, int o) {
-
             this.c = c;
             this.o = o;
         }
     }
 
-    private static class Room {
+    static class Room {
         String encryptedName;
         int sectorId;
         String checksum;
@@ -86,18 +104,6 @@ public class PuzzleSolver {
             this.encryptedName = encryptedName;
             this.sectorId = sectorId;
             this.checksum = checksum;
-        }
-
-        public String getEncryptedName() {
-            return encryptedName;
-        }
-
-        public int getSectorId() {
-            return sectorId;
-        }
-
-        public String getChecksum() {
-            return checksum;
         }
     }
 }
