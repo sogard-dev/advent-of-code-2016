@@ -1,3 +1,5 @@
+package day4;
+
 import org.junit.jupiter.api.Test;
 
 import java.net.URL;

@@ -1,5 +1,3 @@
-include("day4")
-
 dependencyResolutionManagement {
     repositories.mavenCentral()
 }
@@ -10,3 +8,5 @@ pluginManagement {
     includeBuild("gradle/plugins")
 }
 
+include("day4")
+include("day5")
