@@ -1,3 +1,5 @@
+package dayx;
+
 import org.junit.jupiter.api.Test;
 
 import java.net.URL;
@@ -20,7 +22,7 @@ class PuzzleSolverTest {
     }
 
     private List<String> getPuzzleInput() throws Exception {
-        URL resource = this.getClass().getResource("./puzzle_input.txt");
+        URL resource = this.getClass().getResource("/puzzle_input.txt");
         return Files.readAllLines(Paths.get(resource.toURI()));
     }
 }

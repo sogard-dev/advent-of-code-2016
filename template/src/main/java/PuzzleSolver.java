@@ -1,3 +1,5 @@
+package dayx;
+
 public class PuzzleSolver {
 
     public static int task1() {
