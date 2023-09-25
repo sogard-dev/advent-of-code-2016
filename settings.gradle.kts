@@ -11,3 +11,4 @@ pluginManagement {
 include("day4")
 include("day5")
 include("day6")
+include("day7")
