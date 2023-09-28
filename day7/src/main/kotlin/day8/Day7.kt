@@ -1,4 +1,4 @@
-package day7
+package day8
 
 class Day7 {
     companion object {
@@ -6,13 +6,9 @@ class Day7 {
 
         private fun isABA(s: String) = s[0] == s[2] && s[1] != s[0]
 
-        fun task1(input: List<String>): Int {
-            return input.map(Companion::supportTls).count { it }
-        }
+        fun task1(input: List<String>): Int = input.map(Companion::supportTls).count { it }
 
-        fun task2(input: List<String>): Int {
-            return input.map(Companion::supportSsl).count { it }
-        }
+        fun task2(input: List<String>): Int = input.map(Companion::supportSsl).count { it }
 
         fun supportTls(input: String): Boolean {
             val (supernet, hypernet) = splitInput(input)
