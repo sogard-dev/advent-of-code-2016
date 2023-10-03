@@ -28,16 +28,32 @@ class Day9 {
             return length
         }
 
-        fun task2(inputs: List<String>): Int {
+        fun task2(inputs: List<String>): Long {
             val input = inputs[0]
             val values = Array(input.length) { 1 }
-            val length = 0;
-            var pointer = 0;
-            while (pointer < input.length) {
+            val compile = Pattern.compile(("\\(([\\d]+)x([\\d]+)\\)"))
 
+            val matcher = compile.matcher(input)
+            var pointer = 0
+            var sum = 0L
+            while (matcher.find()) {
+                for (i in pointer until matcher.start()) {
+                    sum += values[i]
+                }
+                val end = matcher.end()
+                val charCount = matcher.group(1).toInt()
+                val repeat = matcher.group(2).toInt()
+                for (i in end until end + charCount) {
+                    values[i] *= repeat
+                }
+
+                pointer = end;
+            }
+            for (i in pointer until input.length) {
+                sum += values[i]
             }
 
-            return length
+            return sum
         }
     }
 }

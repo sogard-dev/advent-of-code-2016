@@ -22,9 +22,11 @@ internal class Day9Test {
     fun testTaskTwo() {
         assertEquals(9, Day9.task2(listOf("(3x3)XYZ")))
         assertEquals(6, Day9.task2(listOf("ADVENT")))
-        assertEquals("XABCABCABCABCABCABCY".length, Day9.task2(listOf("X(8x2)(3x3)ABCY")))
+        assertEquals("XABCABCABCABCABCABCY".length.toLong(), Day9.task2(listOf("X(8x2)(3x3)ABCY")))
         assertEquals(241920, Day9.task2(listOf("(27x12)(20x12)(13x14)(7x10)(1x12)A")))
         assertEquals(445, Day9.task2(listOf("(25x3)(3x3)ABC(2x3)XY(5x2)PQRSTX(18x9)(3x2)TWO(5x7)SEVEN")))
+        assertEquals(10964557606, Day9.task2(readPuzzle()))
+
     }
 
     private fun readPuzzle(): List<String> {
