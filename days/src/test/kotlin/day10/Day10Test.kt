@@ -31,7 +31,7 @@ internal class Day10Test {
     }
 
     private fun readPuzzle(): List<String> {
-        val path = Paths.get(this.javaClass.getResource("/puzzle_input.txt").toURI())
+        val path = Paths.get(this.javaClass.getResource("/day10_puzzle_input.txt").toURI())
         val readAllLines = Files.readAllLines(path)
         return readAllLines
     }

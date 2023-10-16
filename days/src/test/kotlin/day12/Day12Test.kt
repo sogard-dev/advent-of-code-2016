@@ -1,24 +1,24 @@
-package dayx
+package day12
 
 import java.nio.file.Files
 import java.nio.file.Paths
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-internal class DayXTest {
+internal class Day12Test {
 
     @Test
     fun testTaskOne() {
-        assertEquals(110, DayX.task1(readPuzzle()))
+        assertEquals(-1, task1(readPuzzle()))
     }
 
     @Test
     fun testTaskTwo() {
-        assertEquals(242, DayX.task2(readPuzzle()))
+        assertEquals(1209, task2(readPuzzle()))
     }
 
     private fun readPuzzle(): List<String> {
-        val path = Paths.get(this.javaClass.getResource("/puzzle_input.txt").toURI())
+        val path = Paths.get(this.javaClass.getResource("/day12_puzzle_input.txt").toURI())
         val readAllLines = Files.readAllLines(path)
         return readAllLines
     }
