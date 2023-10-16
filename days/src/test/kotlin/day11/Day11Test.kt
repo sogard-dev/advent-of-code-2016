@@ -20,7 +20,7 @@ internal class Day11Test {
             )
         )
 
-        assertEquals(-1, task1(readPuzzle()))
+        assertEquals(33, task1(readPuzzle()))
     }
 
     @Test
