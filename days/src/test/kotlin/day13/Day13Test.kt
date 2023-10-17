@@ -1,27 +1,14 @@
-package day12
+package day13
 
 import java.nio.file.Files
 import java.nio.file.Paths
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-internal class Day12Test {
+internal class Day13Test {
 
     @Test
     fun testTaskOne() {
-        assertEquals(
-            42, task1(
-                listOf(
-                    "cpy 41 a",
-                    "inc a",
-                    "inc a",
-                    "dec a",
-                    "jnz a 2",
-                    "dec a"
-                )
-            )
-        )
-
         assertEquals(-1, task1(readPuzzle()))
     }
 

@@ -1,4 +1,4 @@
-package day12
+package day13
 
 fun task1(input: List<String>): Int {
     return -1
