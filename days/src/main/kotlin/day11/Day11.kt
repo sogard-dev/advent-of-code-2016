@@ -1,13 +1,11 @@
 package day11
 
 import java.util.regex.Pattern
-import kotlin.math.min
 
 fun task1(input: List<String>): Int {
     val (items: MutableList<Item>, place: MutableList<Int>) = generateItemsAndFloors(input)
     val places = doWork(items.toTypedArray(), place.toIntArray())
-    print(items.toTypedArray(), places)
-    return places.size - 1
+    return places
 }
 
 fun task2(input: List<String>): Int {
@@ -21,8 +19,7 @@ fun task2(input: List<String>): Int {
     place.add(1)
     place.add(1)
     val places = doWork(items.toTypedArray(), place.toIntArray())
-    print(items.toTypedArray(), places)
-    return places.size - 1
+    return places
 }
 
 private fun generateItemsAndFloors(input: List<String>): Pair<MutableList<Item>, MutableList<Int>> {
@@ -71,7 +68,7 @@ private fun print(items: Array<Item>, moves: List<Pair<IntArray, Int>>) {
 
 }
 
-private fun doWork(items: Array<Item>, initPlaces: IntArray): List<Pair<IntArray, Int>> {
+private fun doWork(items: Array<Item>, initPlaces: IntArray): Int {
     val lowestFloor = 1
     val highestFloor = 4
 
@@ -103,97 +100,75 @@ private fun doWork(items: Array<Item>, initPlaces: IntArray): List<Pair<IntArray
         }
     }
 
-    fun canBeMovedTo(otherFloor: Int, itemIndex: Int, places: IntArray): Boolean {
-        val newPlaces = places.clone()
-        newPlaces[itemIndex] = otherFloor
-        return isSafe(newPlaces)
-    }
-
-    fun canBeMovedTo(otherFloor: Int, itemIndex1: Int, itemIndex2: Int, places: IntArray): Boolean {
-        val newPlaces = places.clone()
-        newPlaces[itemIndex1] = otherFloor
-        newPlaces[itemIndex2] = otherFloor
-        return isSafe(newPlaces)
-    }
-
     fun isValidFloor(otherFloor: Int): Boolean {
         return otherFloor in lowestFloor..highestFloor
     }
 
-    val cache = HashMap<Pair<Int, List<Int>>, Int>()
-    var bestFound = Int.MAX_VALUE
+    fun bfs(): Int {
+        val queue: MutableList<Pair<Int, IntArray>> = mutableListOf()
+        val nextRoundQueue: MutableList<Pair<Int, IntArray>> = mutableListOf()
+        val seen = mutableSetOf<Pair<Int, List<Pair<Int, Int>>>>()
 
-    val currentMoves: MutableList<Pair<IntArray, Int>> = mutableListOf()
+        queue.add(Pair(1, initPlaces))
+        var moves = 0
+        while (queue.isNotEmpty()) {
+            val (elevator, places) = queue.removeFirst()
+            val itemsOnFloor = places.withIndex().filter { (_, floorIndex) -> floorIndex == elevator }.toList()
 
-    var bestMoves: List<Pair<IntArray, Int>> = listOf()
-
-    //Return steps to success
-    fun recurse(places: IntArray, steps: Int, currentFloor: Int): Int {
-        var best = Int.MAX_VALUE
-
-        if (steps > 300 || bestFound < steps) {
-            return best
-        }
-
-        val atLeastLeft = places.sumOf { (highestFloor - it) * 2 } - 8
-        if (atLeastLeft + steps > bestFound) {
-            return best
-        }
-
-        if (places.all { it == highestFloor }) {
-            println("Found a path with steps: $steps")
-            if (steps < bestFound) {
-                bestFound = min(bestFound, steps)
-                bestMoves = currentMoves.toList()
-
+            if (places.all { it == 4 }) {
+                return moves
             }
-            return steps
-        }
 
+            for (diff in arrayOf(1, -1)) {
+                val movedToFloor = elevator + diff
 
-        val cacheKey = Pair(currentFloor, places.asList())
-        val previous = cache[cacheKey] ?: Int.MAX_VALUE
-        if (previous <= steps) {
-            return best
-        }
-        cache[cacheKey] = steps
-
-        for (diff in arrayOf(1, -1)) {
-            val movedToFloor = currentFloor + diff
-
-            if (isValidFloor(movedToFloor)) {
-                val itemsOnFloor = places.withIndex().filter { (_, floorIndex) -> floorIndex == currentFloor }.toList()
-
-                lazyCartesianProduct(itemsOnFloor)
-                    .filter { (a, b) -> canBeMovedTo(movedToFloor, a.index, b.index, places) }
-                    .forEach { (a, b) ->
+                if (isValidFloor(movedToFloor)) {
+                    val doubles = lazyCartesianProduct(itemsOnFloor)
+                        .map { (a, b) ->
+                            val newPlaces = places.clone()
+                            newPlaces[a.index] = movedToFloor
+                            newPlaces[b.index] = movedToFloor
+                            newPlaces
+                        }
+                    val singles = itemsOnFloor.map { a ->
                         val newPlaces = places.clone()
                         newPlaces[a.index] = movedToFloor
-                        newPlaces[b.index] = movedToFloor
-                        currentMoves.add(Pair(newPlaces, movedToFloor))
-                        best = min(best, recurse(newPlaces, steps + 1, movedToFloor))
-                        currentMoves.removeLast()
+                        newPlaces
                     }
 
-                itemsOnFloor
-                    .filter { (itemIndex, _) -> canBeMovedTo(movedToFloor, itemIndex, places) }
-                    .forEach { (itemIndex, _) ->
-                        val newPlaces = places.clone()
-                        newPlaces[itemIndex] = movedToFloor
-                        currentMoves.add(Pair(newPlaces, movedToFloor))
-                        best = min(best, recurse(newPlaces, steps + 1, movedToFloor))
-                        currentMoves.removeLast()
-                    }
+                    (singles + doubles)
+                        .filter { isSafe(it) }
+                        .map { Pair(movedToFloor, it) }
+                        .filter { seen.add(Pair(it.first, gensAndMicros(items, it.second))) }
+                        .forEach { newPlaces ->
+                            nextRoundQueue.add(newPlaces)
+                        }
+                }
+            }
+
+            if (queue.isEmpty()) {
+                println("Trying moves of size $moves")
+                moves++
+                queue.addAll(nextRoundQueue)
+                nextRoundQueue.clear()
             }
         }
 
-        return best
+        return Int.MAX_VALUE
     }
 
-    currentMoves.add(Pair(initPlaces, 1))
-    recurse(initPlaces, 0, 1)
+    return bfs()
+}
 
-    return bestMoves
+private fun gensAndMicros(items: Array<Item>, second: IntArray): List<Pair<Int, Int>> {
+    return (1..4).map {
+        val itemsOnFloor = second.withIndex()
+            .filter { (_, floor) -> floor == it }
+        val gens = itemsOnFloor.count { items[it.index] is Generator }
+        val micros = itemsOnFloor.count { items[it.index] is Microchip }
+
+        Pair(gens, micros)
+    }
 }
 
 private fun <A> lazyCartesianProduct(listA: List<A>): Sequence<Pair<A, A>> =
@@ -201,7 +176,6 @@ private fun <A> lazyCartesianProduct(listA: List<A>): Sequence<Pair<A, A>> =
         for (i in listA.indices) {
             for (j in i + 1 until listA.size) {
                 yield(listA[i] to listA[j])
-
             }
         }
     }
