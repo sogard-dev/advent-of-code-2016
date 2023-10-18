@@ -22,12 +22,12 @@ internal class Day12Test {
             )
         )
 
-        assertEquals(-1, task1(readPuzzle()))
+        assertEquals(318077, task1(readPuzzle()))
     }
 
     @Test
     fun testTaskTwo() {
-        assertEquals(1209, task2(readPuzzle()))
+        assertEquals(9227731, task2(readPuzzle()))
     }
 
     private fun readPuzzle(): List<String> {

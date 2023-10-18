@@ -13,6 +13,18 @@ fun task1(input: List<String>): Int {
     return memory.get(Register.A)
 }
 
+fun task2(input: List<String>): Int {
+    val memory = Memory()
+    memory.set(Register.C, 1)
+    val instruction = parse(input)
+
+    while (memory.programCounter in instruction.indices) {
+        instruction[memory.programCounter].execute(memory)
+    }
+
+    return memory.get(Register.A)
+}
+
 private fun parse(input: List<String>): Array<Instruction> {
     return input.map {
         val split = it.split(" ")
@@ -21,14 +33,10 @@ private fun parse(input: List<String>): Array<Instruction> {
             "inc" -> INC(getRegister(split[1]))
             "dec" -> DEC(getRegister(split[1]))
             "cpy" -> CPY(getValue(split[1]), getRegister(split[2]))
-            "jnz" -> JNZ(getRegister(split[1]), getNumber(split[2]))
+            "jnz" -> JNZ(getValue(split[1]), getNumber(split[2]))
             else -> throw UnsupportedOperationException()
         }
     }.toTypedArray()
-}
-
-fun task2(input: List<String>): Int {
-    return -1
 }
 
 private class Memory(var programCounter: Int = 0) {
@@ -86,9 +94,14 @@ private class CPY(val value: Value, val register: Register) : Instruction {
     }
 }
 
-private class JNZ(val register: Register, val jump: Int) : Instruction {
+private class JNZ(val testVar: Value, val jump: Int) : Instruction {
     override fun execute(memory: Memory) {
-        if (memory.get(register) != 0) {
+        val value = when(testVar) {
+            is NumberValue -> testVar.value
+            is RegisterReference -> memory.get(testVar.register)
+        }
+
+        if (value != 0) {
             memory.setDeltaPc(jump)
         } else {
             memory.incPC()
