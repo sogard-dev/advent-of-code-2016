@@ -9,12 +9,24 @@ internal class Day18Test {
 
     @Test
     fun testTaskOne() {
-        assertEquals(-1, task1(readPuzzle()))
+        assertEquals("^^^...^..^", generateRow(".^^.^.^^^^"))
+        assertEquals("^.^^.^.^^.", generateRow("^^^...^..^"))
+        assertEquals("..^^...^^^", generateRow("^.^^.^.^^."))
+        assertEquals(".^^^^.^^.^", generateRow("..^^...^^^"))
+        assertEquals("^^..^.^^..", generateRow(".^^^^.^^.^"))
+        assertEquals("^^^^..^^^.", generateRow("^^..^.^^.."))
+        assertEquals("^..^^^^.^^", generateRow("^^^^..^^^."))
+        assertEquals(".^^^..^.^^", generateRow("^..^^^^.^^"))
+        assertEquals("^^.^^^..^^", generateRow(".^^^..^.^^"))
+
+        assertEquals(38, task1(".^^.^.^^^^", 10))
+
+        assertEquals(1974, task1(readPuzzle()[0], 40))
     }
 
     @Test
     fun testTaskTwo() {
-        assertEquals(-1, task2(readPuzzle()))
+        assertEquals(19991126, task1(readPuzzle()[0], 400000))
     }
 
     private fun readPuzzle(): List<String> {
