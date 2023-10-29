@@ -9,12 +9,14 @@ internal class Day19Test {
 
     @Test
     fun testTaskOne() {
-        assertEquals(-1, task1(readPuzzle()))
+        assertEquals(3, task1(listOf("5")))
+        assertEquals(1808357, task1(listOf("3001330")))
     }
 
     @Test
     fun testTaskTwo() {
-        assertEquals(-1, task2(readPuzzle()))
+        assertEquals(2, task2(listOf("5")))
+        assertEquals(1407007, task2(listOf("3001330")))
     }
 
     private fun readPuzzle(): List<String> {
