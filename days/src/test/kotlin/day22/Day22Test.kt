@@ -1,4 +1,4 @@
-package day21
+package day22
 
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -18,7 +18,7 @@ internal class Day22Test {
     }
 
     private fun readPuzzle(): List<String> {
-        val path = Paths.get(this.javaClass.getResource("/day21_puzzle_input.txt").toURI())
+        val path = Paths.get(this.javaClass.getResource("/day22_puzzle_input.txt").toURI())
         val readAllLines = Files.readAllLines(path)
         return readAllLines
     }
