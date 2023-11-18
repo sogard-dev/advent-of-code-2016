@@ -2,12 +2,14 @@ package day12
 
 import java.util.*
 
-fun task1(input: List<String>): Int {
+fun task1(input: List<String>, registerA: Int = 0): Int {
     val memory = Memory()
-    val instruction = parse(input)
+    memory.set(Register.A, registerA)
 
-    while (memory.programCounter in instruction.indices) {
-        instruction[memory.programCounter].execute(memory)
+    var instructions = parse(input)
+
+    while (memory.programCounter in instructions.indices) {
+        instructions = instructions[memory.programCounter].execute(memory, instructions)
     }
 
     return memory.get(Register.A)
@@ -16,10 +18,10 @@ fun task1(input: List<String>): Int {
 fun task2(input: List<String>): Int {
     val memory = Memory()
     memory.set(Register.C, 1)
-    val instruction = parse(input)
+    var instructions = parse(input)
 
-    while (memory.programCounter in instruction.indices) {
-        instruction[memory.programCounter].execute(memory)
+    while (memory.programCounter in instructions.indices) {
+        instructions = instructions[memory.programCounter].execute(memory, instructions)
     }
 
     return memory.get(Register.A)
@@ -32,14 +34,15 @@ private fun parse(input: List<String>): Array<Instruction> {
         when (split[0]) {
             "inc" -> INC(getRegister(split[1]))
             "dec" -> DEC(getRegister(split[1]))
-            "cpy" -> CPY(getValue(split[1]), getRegister(split[2]))
-            "jnz" -> JNZ(getValue(split[1]), getNumber(split[2]))
+            "tgl" -> TGL(getRegister(split[1]))
+            "cpy" -> CPY(getValue(split[1]), getValue(split[2]))
+            "jnz" -> JNZ(getValue(split[1]), getValue(split[2]))
             else -> throw UnsupportedOperationException()
         }
     }.toTypedArray()
 }
 
-private class Memory(var programCounter: Int = 0) {
+private data class Memory(var programCounter: Int = 0) {
     private val memory: EnumMap<Register, Int> = EnumMap(day12.Register::class.java)
     fun set(register: Register, num: Int) {
         memory[register] = num
@@ -76,50 +79,89 @@ private fun getNumber(inp: String): Int {
 }
 
 private sealed interface Value
-private class NumberValue(val value: Int) : Value
-private class RegisterReference(val register: Register) : Value
+private data class NumberValue(val value: Int) : Value
+private data class RegisterReference(val register: Register) : Value
 
 
 private sealed interface Instruction {
-    fun execute(memory: Memory)
+    fun execute(memory: Memory, instructions: Array<Instruction>): Array<Instruction>
 }
 
-private class CPY(val value: Value, val register: Register) : Instruction {
-    override fun execute(memory: Memory) {
-        when (value) {
-            is NumberValue -> memory.set(register, value.value)
-            is RegisterReference -> memory.set(register, memory.get(value.register))
+private data class CPY(val value: Value, val target: Value) : Instruction {
+    override fun execute(memory: Memory, instructions: Array<Instruction>): Array<Instruction> {
+        if (target is RegisterReference) {
+            when (value) {
+                is NumberValue -> memory.set(target.register, value.value)
+                is RegisterReference -> memory.set(target.register, memory.get(value.register))
+            }
         }
+
         memory.incPC()
+        return instructions
     }
 }
 
-private class JNZ(val testVar: Value, val jump: Int) : Instruction {
-    override fun execute(memory: Memory) {
-        val value = when(testVar) {
+private data class JNZ(val testVar: Value, val jump: Value) : Instruction {
+    override fun execute(memory: Memory, instructions: Array<Instruction>): Array<Instruction> {
+        val value = when (testVar) {
             is NumberValue -> testVar.value
             is RegisterReference -> memory.get(testVar.register)
         }
 
         if (value != 0) {
-            memory.setDeltaPc(jump)
+            val delta = when(jump) {
+                is NumberValue -> jump.value
+                is RegisterReference -> memory.get(jump.register)
+            }
+
+            memory.setDeltaPc(delta)
         } else {
             memory.incPC()
         }
+
+        return instructions
     }
 }
 
-private class INC(val register: Register) : Instruction {
-    override fun execute(memory: Memory) {
+private data class INC(val register: Register) : Instruction {
+    override fun execute(memory: Memory, instructions: Array<Instruction>): Array<Instruction> {
         memory.set(register, memory.get(register) + 1)
         memory.incPC()
+
+        return instructions
     }
 }
 
-private class DEC(val register: Register) : Instruction {
-    override fun execute(memory: Memory) {
+private data class DEC(val register: Register) : Instruction {
+    override fun execute(memory: Memory, instructions: Array<Instruction>): Array<Instruction> {
         memory.set(register, memory.get(register) - 1)
         memory.incPC()
+
+        return instructions
+    }
+}
+
+private data class TGL(val register: Register) : Instruction {
+    override fun execute(memory: Memory, instructions: Array<Instruction>): Array<Instruction> {
+        val jump = memory.get(register)
+        val idx = memory.programCounter + jump
+        memory.incPC()
+
+        if (idx in instructions.indices) {
+            val newIns = when (val ins = instructions[idx]) {
+                is INC -> DEC(ins.register)
+                is DEC -> INC(ins.register)
+                is TGL -> INC(ins.register)
+                is JNZ -> CPY(ins.testVar, ins.jump)
+                is CPY -> JNZ(ins.value, ins.target)
+            }
+
+            val copyOf = instructions.copyOf()
+            copyOf[idx] = newIns
+            return copyOf
+        }
+
+        return instructions
     }
 }
 

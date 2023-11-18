@@ -1,4 +1,4 @@
-package day23
+package day12
 
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -9,12 +9,23 @@ internal class Day23Test {
 
     @Test
     fun testTaskOne() {
-        assertEquals(-1, task1(readPuzzle()))
+        assertEquals(
+            3, task1(
+                """cpy 2 a
+tgl a
+tgl a
+tgl a
+cpy 1 a
+dec a
+dec a""".lines()
+            )
+        )
+        assertEquals(11736, task1(readPuzzle(), 7))
     }
 
     @Test
     fun testTaskTwo() {
-        assertEquals(-1, task2(readPuzzle()))
+        assertEquals(479008296, task1(readPuzzle(), 12))
     }
 
     private fun readPuzzle(): List<String> {
