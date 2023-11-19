@@ -9,12 +9,21 @@ internal class Day24Test {
 
     @Test
     fun testTaskOne() {
-        assertEquals(-1, task1(readPuzzle()))
+        assertEquals(
+            14, task1(
+                """###########
+#0.1.....2#
+#.#######.#
+#4.......3#
+###########""".lines()
+            )
+        )
+        assertEquals(498, task1(readPuzzle()))
     }
 
     @Test
     fun testTaskTwo() {
-        assertEquals(-1, task2(readPuzzle()))
+        assertEquals(804, task2(readPuzzle()))
     }
 
     private fun readPuzzle(): List<String> {
