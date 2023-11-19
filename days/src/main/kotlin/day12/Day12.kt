@@ -27,11 +27,56 @@ fun task2(input: List<String>): Int {
     return memory.get(Register.A)
 }
 
+fun task1_day25(input: List<String>): Int {
+    for (i in 0..5000000) {
+        val memory = Memory()
+        memory.set(Register.A, i)
+        var instructions = parse(input)
+
+        var lim = 0
+
+        while (memory.programCounter in instructions.indices) {
+            val output = memory.getOutput()
+            if (output.length >= 2 && !(output.endsWith("01") || output.endsWith("10"))) {
+                break
+            }
+
+            if (memory.programCounter == 0) {
+                memory.programCounter = 7
+                memory.set(Register.A, i)
+                memory.set(Register.D, i + 2550)
+            }
+
+            val aOrgValue = memory.get(Register.A)
+            if (memory.programCounter == 9 && aOrgValue > 10) {
+                memory.programCounter = 26
+                val aMod = aOrgValue % 2
+                memory.set(Register.A, aOrgValue / 2)
+                memory.set(Register.B, aMod)
+                memory.set(Register.C, 0)
+            }
+
+            instructions = instructions[memory.programCounter].execute(memory, instructions)
+            lim++
+
+
+            println("$i - ${lim - 1} After > ${memory}")
+        }
+
+        println("$i => ${memory.getOutput()}")
+
+    }
+
+
+    return -1
+}
+
 private fun parse(input: List<String>): Array<Instruction> {
     return input.map {
         val split = it.split(" ")
 
         when (split[0]) {
+            "out" -> OUT(getValue(split[1]))
             "inc" -> INC(getRegister(split[1]))
             "dec" -> DEC(getRegister(split[1]))
             "tgl" -> TGL(getRegister(split[1]))
@@ -42,8 +87,10 @@ private fun parse(input: List<String>): Array<Instruction> {
     }.toTypedArray()
 }
 
-private data class Memory(var programCounter: Int = 0) {
-    private val memory: EnumMap<Register, Int> = EnumMap(day12.Register::class.java)
+private class Memory(var programCounter: Int = 0) {
+    private val memory: EnumMap<Register, Int> = EnumMap(Register::class.java)
+    private val output: StringBuilder = StringBuilder()
+
     fun set(register: Register, num: Int) {
         memory[register] = num
     }
@@ -59,6 +106,19 @@ private data class Memory(var programCounter: Int = 0) {
     fun setDeltaPc(jump: Int) {
         programCounter += jump
     }
+
+    fun addToOutput(v: Int) {
+        output.append(v.toString())
+    }
+
+    fun getOutput(): String {
+        return output.toString()
+    }
+
+    override fun toString(): String {
+        return "Memory(programCounter=$programCounter, memory=$memory, output=$output)"
+    }
+
 
 }
 
@@ -109,7 +169,7 @@ private data class JNZ(val testVar: Value, val jump: Value) : Instruction {
         }
 
         if (value != 0) {
-            val delta = when(jump) {
+            val delta = when (jump) {
                 is NumberValue -> jump.value
                 is RegisterReference -> memory.get(jump.register)
             }
@@ -118,6 +178,20 @@ private data class JNZ(val testVar: Value, val jump: Value) : Instruction {
         } else {
             memory.incPC()
         }
+
+        return instructions
+    }
+}
+
+private data class OUT(val value: Value) : Instruction {
+    override fun execute(memory: Memory, instructions: Array<Instruction>): Array<Instruction> {
+        val delta = when (value) {
+            is NumberValue -> value.value
+            is RegisterReference -> memory.get(value.register)
+        }
+
+        memory.addToOutput(delta)
+        memory.incPC()
 
         return instructions
     }
@@ -149,6 +223,7 @@ private data class TGL(val register: Register) : Instruction {
 
         if (idx in instructions.indices) {
             val newIns = when (val ins = instructions[idx]) {
+                is OUT -> OUT(ins.value)
                 is INC -> DEC(ins.register)
                 is DEC -> INC(ins.register)
                 is TGL -> INC(ins.register)
